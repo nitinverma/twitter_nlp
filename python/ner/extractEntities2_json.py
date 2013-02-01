@@ -154,6 +154,7 @@ while line:
 
     #sys.stdout.write("[");
     rjson=[]
+    rarray=[]
     #Extract and classify entities
     for i in range(len(features.entities)):
         type = None
@@ -194,19 +195,40 @@ while line:
             for j in range(features.entities[i][0]+1,features.entities[i][1]):
                 tags[j] = "I-ENTITY"
 
+    tmpentity=" "
     if pos:
-        sys.stdout.write((" ".join(["{\"word\":\"%s\",\"tag\":\"%s\",\"pos\":\"%s\"}," % (words[x], tags[x], pos[x]) for x in range(len(words))]) + "{}]\n").encode('utf8'))
+        for x in range(len(words)):
+            tmparray = tags[x].rsplit("-")
+            if len(tmparray) == 2 and tmparray[0] == "B":
+                ax = [x]
+                rarray.append(ax)
+                tmpentity = tmparray[1]
+            elif len(tmparray) == 2 and tmparray[0] == "I" and tmparray[1] == tmpentity:
+                if len(rarray) > 0:
+                    ax = rarray[len(rarray)-1]
+                    ax.append(x)
+                    rarray[len(rarray)-1] = ax
+            else:
+                tmpentity=" "
+
+            rjson.append( {"word":words[x],"tag":tags[x],"pos":pos[x]} )
     else:
-        print x
-        #sys.stdout.write((" ".join(["{\"word\":\"%s\",\"tag\":\"%s\"}," % (words[x], tags[x]) for x in range(len(words))]) + "{}]\n").encode('utf8'))        
-        rword = words[x]
-        rtag = tags[x]
-        rdict = {"word":rword,"tag":rtag}
-        rjson[len(rjson):] = [rdict]
+        for x in range(len(words)):
+            rjson.append( {"word":words[x],"tag":tags[x]} )
 
-        e = json.dumps(rjson)
-        sys.stdout.write(e)
+    if pos:
+        for ai in rarray:
+            if len(ai) > 1:
+                tmparray = tags[ai[0]].rsplit("-")
+                tentity = ""
+                for aj in ai:
+                    tentity += words[aj] + " "
+                tentity = tentity.strip()
+                rjson.append( {"word":tentity,"tag":tmparray[1],"pos":"0"} )
 
+    e = json.dumps(rjson)
+    sys.stdout.write(e)
+    sys.stdout.write("\n")
     sys.stdout.flush()
 
     #seems like there is a memory leak comming from mallet, so just restart it every 1,000 tweets or so
@@ -227,4 +249,5 @@ while line:
 
 end_time = time.time()
 
-print "Average time per tweet = %ss" % (str((end_time-start_time) / nLines))
+sys.stderr.write( "Average time per tweet = %ss\n" % (str((end_time-start_time) / nLines)) )
+
