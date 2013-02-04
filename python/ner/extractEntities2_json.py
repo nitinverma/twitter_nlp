@@ -218,7 +218,7 @@ while line:
 
     if pos:
         for ai in rarray:
-            if len(ai) > 1:
+            if len(ai) > 0:
                 tmparray = tags[ai[0]].rsplit("-")
                 tentity = ""
                 for aj in ai:
