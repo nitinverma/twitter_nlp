@@ -199,11 +199,11 @@ while line:
     if pos:
         for x in range(len(words)):
             tmparray = tags[x].rsplit("-")
-            if len(tmparray) == 2 and tmparray[0] == "B":
+            if len(tmparray) >= 2 and tmparray[0] == "B":
                 ax = [x]
                 rarray.append(ax)
                 tmpentity = tmparray[1]
-            elif len(tmparray) == 2 and tmparray[0] == "I" and tmparray[1] == tmpentity:
+            elif len(tmparray) >= 2 and tmparray[0] == "I" and tmparray[1] == tmpentity:
                 if len(rarray) > 0:
                     ax = rarray[len(rarray)-1]
                     ax.append(x)
@@ -219,12 +219,13 @@ while line:
     if pos:
         for ai in rarray:
             if len(ai) > 0:
-                tmparray = tags[ai[0]].rsplit("-")
+                tmpsubstring = tags[ai[0]]
+		tmpsubstring = tmpsubstring[2:]
                 tentity = ""
                 for aj in ai:
                     tentity += words[aj] + " "
                 tentity = tentity.strip()
-                rjson.append( {"word":tentity,"tag":tmparray[1],"pos":"0"} )
+                rjson.append( {"word":tentity,"tag":tmpsubstring,"pos":"0"} )
 
     e = json.dumps(rjson)
     sys.stdout.write(e)
